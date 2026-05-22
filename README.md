@@ -6,7 +6,8 @@ Welcome to my personal JavaScript learning lab! This repository is a collection 
 The repository is organized day-wise, with each folder containing clean execution files and quick revision notes:
 
 * 📁 Day-04-Functions-In-Depth/
-* 📁 Day-05-Array-In-Depth/ `<- Today's Topic`
+* 📁 Day-05-Array-In-Depth/ 
+* 📁 Day-06-Object-In-Depth/ `<- Today's Topic`
 
 ---
 
