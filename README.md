@@ -7,7 +7,8 @@ The repository is organized day-wise, with each folder containing clean executio
 
 * 📁 Day-04-Functions-In-Depth/
 * 📁 Day-05-Array-In-Depth/ 
-* 📁 Day-06-Object-In-Depth/ `<- Today's Topic`
+* 📁 Day-06-Object-In-Depth/ 
+* 📁 Day-07-Student_Grade_Calculator`<- Today's Topic`
 
 ---
 
