@@ -1,0 +1,273 @@
+Topic 1: Execution Context (In-Depth)
+Interview me sirf definition nahi, balki ek code dekar pucha jata hai ki "Batao iska Execution Context kaise banega?" Chalo is code ko dekhte hain:
+
+JavaScript
+var n = 2;
+function square(num) {
+    var ans = num * num;
+    return ans;
+}
+var square2 = square(n);
+Jab aap is code ko run karoge, to background me JS engine do phases chalayega:
+
+Phase 1: Memory Creation Phase
+Is phase me code execute nahi hota, sirf memory allocate hoti hai line-by-line:
+
+Line 1: var n ko dekhte hi JS memory me n ko jagah dega aur value rakh dega undefined.
+
+Line 2 to 5: function square... ko dekhte hi JS memory me square naam ke variable ko poora ka poora function body (as it is code) assign kar dega.
+
+Line 6: var square2 ko dekhte hi use memory me jagah dega aur value rakh dega undefined.
+
+Phase 2: Code Execution Phase
+Ab isi memory ka use karke code line-by-line chalega:
+
+Line 1: n = 2 line chalte hi memory me n ki value undefined se badal kar 2 ho jayegi.
+
+Line 2 to 5: Yahan sirf function definition hai, to JS ise skip karke seedha line 6 par aayega.
+
+Line 6: var square2 = square(n); — Yahan aaya Twist! Yahan function call ho raha hai.
+
+⚠️ Rule: Jab bhi koi function call hota hai, uske liye ek naya Function Execution Context (FEC) banta hai Global Execution Context ke andar!
+
+Ab is naye chote kitchen (FEC) ke andar fir se wahi do phases chalenge sirf us function ke liye:
+
+Memory Phase (Inside FEC): num ko milega undefined, ans ko milega undefined.
+
+Code Execution Phase (Inside FEC): * num me value aayegi 2 (jo humne pass ki thi).
+
+ans = num * num yaani 2 * 2 = 4. ans me 4 store ho jayega.
+
+return ans; — Ye line chalte hi ye value lautakar square2 ko de dega aur ye naya Function Execution Context khatam (delete) ho jayega.
+
+Finally, Global Context me square2 ki value 4 ho jayegi aur poora program khatam hone par Global Context bhi delete ho jayega.
+
+Topic 2: Call Stack (In-Depth)
+Interview Me Kya Pucha Jata Hai:
+Interviewer aapko ek nested function (ek ke andar dusra function) ka code dega aur bolega: "Iska Call Stack draw karke dikhao ki kaun sa context kab upar aayega aur kab delete hoga."
+
+Chalo is code ka example lete hain:
+
+JavaScript
+function a() {
+    b();
+    console.log("Inside A");
+}
+
+function b() {
+    console.log("Inside B");
+}
+
+a();
+Call Stack Ka Live Drama (Step-by-Step):
+Jaise hi aap is code ko run karoge, background me Call Stack kuch is tarah kaam karega:
+
+Step 1 (The Base): Sabse pehle program shuru hote hi stack ke andar Global Execution Context (GEC) aakar baith jayega.
+
+Plaintext
+|         |
+|         |
+|___GEC___|  <-- Stack ke bottom me hamesha GEC hoga
+
+2. **Step 2 (Function `a` ki entry):** Code line-by-line chalte hue jab sabse neeche `a();` par pahunchega, to function `a` call hoga. JS engine `a` ka ek naya Execution Context banayega aur use stack ke upar push kar dega.
+   ```text
+   |         |
+   |___E(a)__|  <-- Function 'a' ka context upar aaya
+   |___GEC___|
+Step 3 (Function b ki entry): Ab control function a ke andar gaya. Wahan pehli hi line me use mila b();. Ab function b call ho gaya! JS engine b ka context banayega aur use a ke upar rakh dega.
+
+Plaintext
+|___E(b)__|  <-- Function 'b' ka context sabse upar aa gaya (LIFO)
+|___E(a)__|
+|___GEC___|
+
+4. **Step 4 (`b` ka kaam khatam - Pop Out):** Function `b` ke andar `console.log("Inside B")` chalega. Ab `b` ke paas chalne ke liye koi line nahi bachi, to `b` ka context stack se **pop out (delete)** ho jayega. Control wapas `a` ke paas chala jayega.
+   ```text
+   |         |
+   |___E(a)__|  <-- 'b' gayab, control wapas 'a' par
+   |___GEC___|
+Step 5 (a ka bacha kaam aur exit): Ab function a apni agli line chalayega: console.log("Inside A"). Iske baad a ka kaam bhi khatam. To a ka context bhi stack se pop out.
+
+Plaintext
+|         |
+|         |
+|___GEC___|  <-- Sirf GEC bacha
+
+6. **Step 6 (Game Over):** Poori script khatam hote hi **GEC** bhi stack se bahar ho jata hai aur Call Stack ekdum khali ho jata hai.
+
+---
+
+### ⚠️ Interviewer ka Sabse Fav Question: "Stack Overflow kya hota hai?"
+
+**Desi Answer:** "Sir, jab hum koi aisa function bana dete hain jo khud ko baar-baar call karta rahe (Infinite Recursion) aur kabhi ruke hi na, to Call Stack me contexts push hote chale jaate hain. Ek time aisa aata hai jab stack ki memory khatam ho jaati hai, aur JS engine crash ho jata hai. Isi ko hum **Stack Overflow** bolte hain."
+
+**Example:**
+```javascript
+function infinitelyCall() {
+    infinitelyCall(); // Apne aap ko hi call karta ja rha h
+}
+infinitelyCall(); // Uncaught RangeError: Maximum call stack size exceeded
+
+Topic 3: Hoisting (var vs let vs function)
+Jaise humne Pehle Topic me padha, Memory Creation Phase ki wajah se JS variables aur functions ko code chalne se pehle hi memory de deta hai. Isi chamatkar ko Hoisting kehte hain.
+
+Chalo teeno ka alag-alag behavior dekhte hain:
+
+1. var ke sath Hoisting
+Normal programming languages me agar aap kisi variable ko banane se pehle use karoge to error aati hai. Par JS me var ke sath aisa nahi hota.
+
+JavaScript
+console.log(x); // 😲 Output: undefined (Error nahi aaya!)
+var x = 10;
+console.log(x); // Output: 10
+Parde ke peeche kya hua?
+JS Engine ne jab pehla phase (Memory Phase) chalaya, to usne var x dekhte hi memory me x ke aage undefined likh diya. Isliye jab line 1 chali, to use memory me x mila aur uski value undefined print ho gayi.
+
+2. Normal Functions ke sath Hoisting
+Functions ke maamle me JS bohot bada dil rakhta hai. Normal function declaration ko wo memory phase me hi poora ka poora code utha kar de deta hai.
+
+JavaScript
+sayHello(); // 😎 Output: "Ram Ram Bhaiyon!" (Pehle hi chal gaya!)
+
+function sayHello() {
+    console.log("Ram Ram Bhaiyon!");
+}
+Parde ke peeche kya hua?
+Memory phase me sayHello ke andar poora function body ({ console.log... }) store ho chuka tha. Isliye aapne use line 1 par chalaya, tab bhi use pata tha ki andar kya chalana hai.
+
+⚠️ Interview Trap (Function Expressions):
+Agar aap function ko kisi variable me daal kar banaoge, to JS use function nahi, variable ki tarah treat karega!
+
+JavaScript
+fun(); // ❌ TypeError: fun is not a function
+var fun = function() {
+    console.log("Hello");
+}
+Kyunki var fun ko memory phase me undefined mila tha, aur aap undefined() ko call karne ki koshish kar rahe ho!
+
+3. let aur const ke sath Hoisting
+Yahan sabse bada confusion hota hai. Log sochte hain ki let aur const hoist nahi hote. Bhai, ye bilkul galat hai! let aur const bhi hoist hote hain, unhe bhi memory milti hai. Par ek twist hai:
+
+JavaScript
+console.log(a); // ❌ ReferenceError: Cannot access 'a' before initialization
+let a = 50;
+Parde ke peeche kya hua?
+var ko jo memory milti hai, wo Global Scope me milti hai. Lekin let aur const ko jo memory milti hai, wo ek alag reserved space me milti hai jise hum Script Scope ya alag block kehte hain.
+
+JS Engine unhe tab tak haath nahi lagane deta jab tak unki asli line (line 2) execute na ho jaye.
+
+Topic 4: Temporal Dead Zone (TDZ)
+Interview Definition:
+Temporal Dead Zone ek variable ke Scope me aane (Birth) se lekar uske Initialize hone (Value milne) ke beech ka samay/time period hota hai. Yeh sirf let aur const ke sath hota hai, var ke sath nahi.
+
+Chalo is code se samjho:
+
+JavaScript
+// 1. Yahan se 'a' ka scope shuru hota hai (TDZ Starts here)
+// 2. JS ko pata hai ki 'a' naam ka variable hai (Hoisted hai)
+// 3. Lekin abhi tak use koi value nahi mili.
+
+console.log(b); // ✅ Output: undefined (Kyunki var ke paas koi TDZ nahi hota)
+
+console.log(a); // ❌ ReferenceError: Cannot access 'a' before initialization
+// 💥 Boom! Aapne TDZ ke andar 'a' ko access karne ki koshish ki.
+
+let a = 10;   // 🎯 TDZ Ends here! (Yahan initialization ho gayi)
+
+console.log(a); // ✅ Output: 10 (Ab safe hai)
+🧠 Interviewer Aapko Kahan Phasayega (Deep Dive Tricks):
+Trap 1: window object par check karna
+Interview me wo poochega: "Kya let variables window object par milte hain?"
+
+JavaScript
+var x = 100;
+let y = 200;
+
+console.log(window.x); // ✅ Output: 100
+console.log(window.y); // ❌ Output: undefined
+Desi Jawab: "Sir, var variables Global Execution Context ke window object par attach ho jaate hain. Lekin let aur const ek alag Script Scope (Reserved Space) me hote hain, isiliye wo window par nahi dikhte."
+
+Trap 2: Bilkul alag error vs TDZ error
+Interviewer do alag-alag errors likh kar puchega dono me kya farq hai:
+
+JavaScript
+console.log(a); // ❌ ReferenceError: Cannot access 'a' before initialization
+let a = 10;
+
+console.log(z); // ❌ ReferenceError: z is not defined
+Pehle waale ka matlab: Variable pure program me hai, par abhi TDZ me phasa hua hai.
+
+Doosre waale ka matlab: Variable poore program me kahin hai hi nahi, JS ko mila hi nahi.
+
+🎯 Interview Question Jo Pakka Ayega:
+Interviewer: "TDZ se bachne ka sabse achha tarika kya hai?"
+Aapka Answer: "Sir, hume hamesha apne saare let aur const variables ko unke scope ke sabse upar (Top of the scope) declare aur initialize karna chahiye, taaki TDZ ka time window zero ho jaye aur code me koi unexpected error na aaye."
+
+Bhai, TDZ ka ye khilauna samajh aaya? Agar haan, to likho "Done", fir chalte hain aaj ke aakhiri topic Scope Chain par!
+
+Topic 5: Scope Chain
+Interview me iska deep dive samajhne ke liye pehle ek word ka matlab dimaag me bitha lo: Lexical.
+
+Lexical = In Order / Physical Location (Yaani koi cheez code me physically kahan likhi hui hai).
+
+Jab bhi koi Function Execution Context banta hai, to uske paas do cheezein hoti hain:
+
+Uska apna Local Memory Environment (uske khud ke variables).
+
+Uske Parent ka Lexical Environment (uske baap ke variables ka reference).
+
+Isi ko bolte hain Lexical Environment = Local Memory + Reference to Lexical Parent.
+
+Code Se Samjho (The Deep Dive):
+JavaScript
+function grandParent() {
+    var gold = "10kg Gold";
+
+    function parent() {
+        var car = "SUV";
+
+        function child() {
+            var toy = "PlayStation";
+            
+            // JS dhoondhne niklega...
+            console.log(toy);   // 1. ✅ Mil gaya (Apne local memory me)
+            console.log(car);   // 2. 🔍 Local me nahi mila -> Parent ke paas gaya -> ✅ Mil gaya!
+            console.log(gold);  // 3. 🔍 Local me nahi, Parent me nahi -> GrandParent ke paas gaya -> ✅ Mil gaya!
+            
+            // console.log(money); // 4. ❌ Kahin nahi mila -> GEC me bhi nahi -> ReferenceError!
+        }
+        child();
+    }
+    parent();
+}
+grandParent();
+Background me kya hua? (Scope Chain Matrix):
+Jab child() function execute ho raha tha, to JS ne sabse pehle uski apni memory me car ko dhoondha. Wahan nahi mila.
+
+Fir child() ne apne parent (parent()) ke lexical environment ka reference pakda aur wahan check kiya. Wahan mil gaya.
+
+Agar wahan bhi na milta, to wo grandParent() ke paas jata, aur fir Global Execution Context (GEC) ke paas jata.
+
+GEC ka apna koi lexical parent nahi hota, isiliye uske parent ka reference hamesha null hota hai.
+
+Variables ko neeche se upar (Global tak) dhoondhne ki is poori chain ko hi hum Scope Chain kehte hain.
+
+🧠 Interviewer ka Ultimate Trap: "Lexical Scope vs Scope Chain"
+Interviewer aapko confuse karne ke liye poochega dono me kya farq hai.
+
+JavaScript
+function b() {
+    console.log(myVar); // 😲 Output kya hoga?
+}
+
+function a() {
+    var myVar = 2;
+    b();
+}
+
+var myVar = 1;
+a();
+Bohot se bachhe yahan bolte hain ki output 2 aayega, par answer hai 1.
+
+Kyun? (Desi Logic):
+Function b physically (lexically) kahan likha hai? Global space me! Wo function a ke andar nahi likha hai, sirf call wahan se ho raha hai. Isiliye b ka lexical parent function a nahi, balki Global Scope hai. Jab b ko myVar apne andar nahi mila, to wo sidha Global ke paas gaya, a ke paas nahi gaya.
