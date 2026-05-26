@@ -6,11 +6,11 @@ Welcome to my learning tracker! This repository documents my daily practice, not
 
 ## 📂 Folder Structure
 
-`
+```
 javascript/        # Core & Advanced JS concepts
 sql/               # Database queries and relational concepts
 json/              # Data formats and configurations
-mini-projects/     # Hands-on building blocks`
+mini-projects/     # Hands-on building blocks```
 
 💻 Technologies & Tools
 Languages & Core: JavaScript (ES6+), SQL, JSON
