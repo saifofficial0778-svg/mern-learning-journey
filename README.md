@@ -1,17 +1,12 @@
-# 🚀 MERN Learning Journey
-
+🚀 MERN Learning Journey
 Welcome to my learning tracker! This repository documents my daily practice, notes, projects, and experiments as I transition into a Full Stack Web Developer.
 
----
-
-## 📂 Folder Structure
-
-
+📂 Folder Structure
+Bash
 javascript/        # Core & Advanced JS concepts
 sql/               # Database queries and relational concepts
 json/              # Data formats and configurations
 mini-projects/     # Hands-on building blocks
-
 💻 Technologies & Tools
 Languages & Core: JavaScript (ES6+), SQL, JSON
 
@@ -25,55 +20,57 @@ Tools: VS Code, Git, GitHub, MySQL Workbench
 
 📘 JavaScript Deep Dive
 🟢 Fundamentals
-Variables & Basics: var vs let vs const, Data Types, typeof, Template Literals, String Methods (length, slice, includes, toUpperCase)
+Variables & Basics: var vs let vs const, Data Types (string, number, boolean, null, undefined), typeof operator, Template literals, String methods (length, slice, includes, toUpperCase), console.log, Comments
 
-Control Flow: if / else if / else, Ternary Operator, switch case, Loops (for, while, do-while), break & continue
+Control Flow: if / else if / else, Ternary operator, switch case, Loops (for, while, do-while), break & continue
 
-Functions: Declarations vs Expressions, Arrow Functions, Default & Rest parameters, Return values
+Functions: Function declaration vs expression, Arrow functions () => {}, Default + rest parameters, Return values
 
 🟡 Intermediate Concepts
-Arrays: Creation, Access, Mutation, Methods (push, pop, shift, unshift, splice), Spread operator ([...arr])
+Arrays: Create, access, mutate, Methods (push, pop, shift, unshift, splice), Spread operator [...arr]
 
-Advanced Array Methods: map, filter, reduce (In-depth), forEach, find, some, every
+Advanced Array Methods: map, filter, reduce (depth mein), forEach, find, some, every
 
-Objects: Dot vs Bracket notation, Methods, Destructuring, Spread operator ({...obj}), Optional chaining (obj?.prop), Object tracking (keys, values, entries)
+Objects: Create, access, methods, Dot vs bracket notation, Destructuring (object + array), Spread {...obj}, Object.keys/values/entries, Optional chaining obj?.prop
 
 🔴 Advanced Fundamentals & Execution
-Execution Context: Call Stack (LIFO mechanism), Scope Chain, Global vs Local Scope
+Execution Context: Execution Context kya hota hai, Call Stack (LIFO samjho), Scope chain, Scope (local vs global)
 
-Hoisting: Behavioral differences between var, let, const, and functions
+Hoisting: var vs let vs function behavioral differences
 
 Temporal Dead Zone (TDZ): Mechanics and parsing behavior
 
-Closures: Lexical scoping, Practical uses (Counters, Private variables), IIFE (Immediately Invoked Function Expressions)
+Closures: Function inside function, Closure practical use (counter, private var), Lexical scoping, IIFE (Immediately Invoked Function Expression), Closure interview questions
 
 Asynchronous JS: (Upcoming)
 
 🛠 SQL & Database Architecture
 📦 Setup & Basics
-Relational Database Concepts (Tables, Rows, Columns)
+Relational DB kya hoti hai
 
-MySQL Installation & Workbench Setup
+MySQL install + Workbench setup
+
+Tables, Rows, Columns concept
 
 Data Types (INT, VARCHAR, DATE, BOOLEAN, DECIMAL)
 
 Database Management (CREATE DATABASE school_erp)
 
 📊 CRUD Operations & Filtering
-Create: CREATE TABLE (Constraints: PRIMARY KEY, NOT NULL, DEFAULT), INSERT INTO
+Create / Read: CREATE TABLE (users, students), Constraints (PRIMARY KEY, NOT NULL, DEFAULT), INSERT INTO (data dalo), SELECT * FROM (data dekho), WHERE clause (filter karo)
 
-Read: SELECT * FROM, WHERE clause filtering, LIKE operator (pattern matching with %), Sorting (ORDER BY ASC/DESC), Pagination (LIMIT, OFFSET)
+Update / Delete: UPDATE SET WHERE, DELETE FROM WHERE, ORDER BY ASC/DESC, LIMIT, OFFSET (pagination), LIKE (search with %)
 
-Update: UPDATE SET WHERE
+🔗 Joins & Relationships
+FOREIGN KEY (tables join karo)
 
-Delete: DELETE FROM WHERE
+One-to-Many: Class ➔ Students
 
-🔗 Relational Databases & Joins
-Foreign Key Constraints
+INNER JOIN (matching rows)
 
-Data Relationships (One-to-Many: Class ➔ Students)
+LEFT JOIN (all rows from left)
 
-Combining Tables: INNER JOIN (matching rows), LEFT JOIN (all rows from left)
+JOIN students with classes table
 
 📌 Mini Projects
 🧮 Student Grade Calculator
@@ -81,13 +78,13 @@ Tech Stack: Core JavaScript
 
 Features:
 
-Manages an array of student objects containing marks.
+Array of students with marks
 
-Dynamically calculates averages, final grades, and pass/fail status.
+Calculate average, grade, and pass/fail status
 
-Filters top-scoring students.
+Filter top scorers
 
-Outputs results in a clean console format.
+Console output in clean format
 
 More projects coming soon...
 
@@ -103,9 +100,9 @@ More projects coming soon...
 [ ] Build and deploy real-world production projects.
 
 📈 Current Focus
-JavaScript: Mastering Asynchronous workflows (Promises, Async/Await).
+JavaScript: Mastering Advanced Concepts (Execution Context, Closures) and moving to Async JS.
 
-SQL: Writing optimized relational complex queries.
+SQL: Relational concepts and mastering table Joins.
 
 Backend Fundamentals: Exploring Node.js environments.
 
