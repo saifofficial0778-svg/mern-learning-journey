@@ -1,0 +1,109 @@
+========================================================================
+             DATABASE MODULE: WEEK 4 NOTES - JOINS & RELATIONSHIPS
+========================================================================
+
+1. FOREIGN KEY & ONE-TO-MANY RELATIONSHIP
+------------------------------------------------------------------------
+* What is it?
+  A Foreign Key is a column in a child table that links to the Primary Key 
+  of a parent table. It creates a relationship between two tables.
+
+* What is One-to-Many?
+  When ONE record in Table A is linked to MULTIPLE records in Table B.
+  Example: ONE Class can have MANY Students.
+
+* Database Structure Example:
+  - Parent Table: classes (class_id, class_name, teacher_name)
+  - Child Table:  students (student_id, student_name, class_id)
+    [Note: class_id in students table is the FOREIGN KEY]
+
+* Real-World ERP Use-Case:
+  - Finance Module: ONE Student can have MANY Fee Receipts.
+  - Exam Module: ONE Subject can have MANY Marks Records.
+
+* SQL Code Example:
+  CREATE TABLE classes (
+      class_id INT PRIMARY KEY AUTO_INCREMENT,
+      class_name VARCHAR(50) NOT NULL
+  );
+
+  CREATE TABLE students (
+      student_id INT PRIMARY KEY AUTO_INCREMENT,
+      student_name VARCHAR(50) NOT NULL,
+      class_id INT,
+      FOREIGN KEY (class_id) REFERENCES classes(class_id)
+  );
+
+
+2. INNER JOIN (Matching Rows Only)
+------------------------------------------------------------------------
+* Definition: 
+  It combines rows from two tables ONLY when there is a match in both tables.
+  Rule: "No Match, No Output".
+
+* Real-World ERP Use-Case:
+  - Invoice Generation: To show Customer Name and Order Details together. 
+    If a customer hasn't ordered anything, they won't show up in this report.
+
+* SQL Query Example:
+  SELECT students.student_name, classes.class_name
+  FROM students
+  INNER JOIN classes ON students.class_id = classes.class_id;
+
+
+3. LEFT JOIN (All Rows From Left Table)
+------------------------------------------------------------------------
+* Definition:
+  It returns ALL records from the left table, and the matched records from 
+  the right table. If there is no match, the right side returns NULL.
+
+* Real-World ERP Use-Case:
+  - Student Enrollment Report: To see ALL registered students. If a new 
+    student has not been assigned a class yet, their name still appears 
+    in the list with "NULL" in the Class column.
+
+* SQL Query Example:
+  SELECT students.student_name, classes.class_name
+  FROM students
+  LEFT JOIN classes ON students.class_id = classes.class_id;
+
+
+4. RIGHT JOIN vs LEFT JOIN
+------------------------------------------------------------------------
+* Why we don't use RIGHT JOIN much?
+  Because RIGHT JOIN and LEFT JOIN are mirror images. We can do 100% of 
+  the tasks of a RIGHT JOIN using a LEFT JOIN just by swapping the 
+  positions of the tables.
+
+* Example Equivalency:
+  "FROM students RIGHT JOIN classes" 
+  is exactly the same as 
+  "FROM classes LEFT JOIN students"
+
+
+5. IMPORTANT DATA OPERATIONS (INSERT & UPDATE)
+------------------------------------------------------------------------
+* How to insert a student WITHOUT a class (NULL value):
+  INSERT INTO students (student_name, class_id) VALUES ('Rohan', NULL);
+
+* How to assign/update a class for that student later:
+  UPDATE students 
+  SET class_id = 1 
+  WHERE student_id = 4; 
+  [CRITICAL WARNING: Always use WHERE clause in UPDATE, otherwise it will 
+   change the data for ALL rows in the table!]
+
+
+6. THE FULL-STACK WORKFLOW (ERP SYSTEM)
+------------------------------------------------------------------------
+When an Admin clicks a button on the Frontend to assign a class:
+1. Frontend (React/JS): Captures the click event and sends a data packet 
+   (Student ID & Class ID) via an API fetch call.
+2. Backend (Node.js/Express): Receives the data securely.
+3. Database (MySQL): Backend runs the UPDATE SQL query on the database.
+4. Response: Database updates the row -> Backend says success -> Frontend 
+   shows a green success popup.
+
+[Security Note: We never connect Frontend directly to Database because 
+anyone could inspect the browser and steal DB passwords.]
+========================================================================
