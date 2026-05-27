@@ -1,0 +1,170 @@
+========================================================================
+DATABASE MODULE: WEEK 4 NOTES - ADVANCED SQL & M:N
+MANY-TO-MANY RELATIONSHIP & JUNCTION TABLE
+
+What is it?
+When MULTIPLE records in Table A are linked to MULTIPLE records in
+Table B. You cannot handle this directly in a single table without
+violating 1NF (First Normal Form).
+
+The 1NF Rule (Desi Logic):
+1NF kehta hai ki har cell me "Atomic Value" (single value) honi chahiye.
+Hum ek hi column me comma lagakar saare subjects (JavaScript, SQL)
+nahi thons sakte. Isliye data ko tod kar teesri table banani padti hai.
+
+What is a Junction Table?
+Many-to-Many relationship ko handle karne ke liye hum dono tables ke
+beech me ek teesri table banate hain jise Junction Table (ya Bridge/
+Mapping table) bolte hain. Yeh dono parent tables ki Primary Keys ko
+apne paas Foreign Keys ki tarah store karti hai.
+
+Database Structure Example:
+
+Parent Table 1: students (student_id, student_name)
+
+Parent Table 2: subjects (subject_id, subject_name)
+
+Junction Table: students_subjects (student_id, subject_id, enrollment_date)
+[Note: student_id and subject_id together form a COMPOSITE PRIMARY KEY]
+
+Real-World ERP Use-Case:
+
+Academics Module: ONE Student can enroll in MANY Subjects, and ONE
+Subject can be studied by MANY Students.
+
+Library Module: ONE Student can borrow MANY Books (over time), and
+ONE Book copy type can be issued to MANY Students.
+
+SQL Code Example:
+CREATE TABLE students (
+student_id INT PRIMARY KEY AUTO_INCREMENT,
+student_name VARCHAR(50) NOT NULL
+);  
+
+CREATE TABLE subjects (
+subject_id INT PRIMARY KEY AUTO_INCREMENT,
+subject_name VARCHAR(50) NOT NULL
+);  
+
+CREATE TABLE students_subjects (
+student_id INT,
+subject_id INT,
+enrollment_date DATE DEFAULT (CURRENT_DATE),
+FOREIGN KEY (student_id) REFERENCES students(student_id) ON DELETE CASCADE,
+FOREIGN KEY (subject_id) REFERENCES subjects(subject_id) ON DELETE CASCADE,
+PRIMARY KEY (student_id, subject_id)
+);  
+
+DATA OPERATIONS & QUERYING ON JUNCTION TABLE
+
+Critical Execution Order:
+Junction table me data insert karne se pehle Parent Tables (students
+aur subjects) me data hona hi chahiye, nahi toh Foreign Key
+Violation Error (Referential Integrity break) aayega.
+
+Step 1: Insert into Parent Tables
+INSERT INTO students (student_name) VALUES ('Amit'), ('Rahul');
+INSERT INTO subjects (subject_name) VALUES ('JavaScript'), ('SQL');
+
+Step 2: Insert Mapping into Junction Table
+INSERT INTO students_subjects (student_id, subject_id) VALUES
+(1, 1),  -- Amit takes JavaScript
+(1, 2),  -- Amit takes SQL
+(2, 1);  -- Rahul takes JavaScript
+
+Step 3: Fetching Data using Table Aliases (Nicknames)
+SELECT s.student_name, sub.subject_name
+FROM students_subjects ss
+JOIN students s ON ss.student_id = s.student_id
+JOIN subjects sub ON ss.subject_id = sub.subject_id;
+
+[Note: ss, s, aur sub table aliases hain taaki query clean rahe
+aur baar-baar bade naam na likhne padein.]
+
+AGGREGATE FUNCTIONS
+
+Definition:
+"Aggregate" ka matlab hai ikattha karna. Jab database me bohot saari
+rows ke data ko combine karke sirf EK single value (summary row)
+nikaalni ho, toh Aggregate functions ka use hota hai.
+
+Real-World ERP Example (Using fees_payment table):
+
+COUNT(): To count rows. COUNT(*) total rows ginta hai (including NULL),
+lekin COUNT(column) sirf non-null values ginta hai.
+Example: Total kitne bacchon ne fees di?
+SELECT COUNT(payment_id) FROM fees_payment;
+
+SUM(): Total amount ko plus (+) karta hai.
+Example: College ka total revenue collection kitna hai?
+SELECT SUM(amount_paid) FROM fees_payment;
+
+AVG(): Average (औसत) nikaalta hai. (Total Sum / Total Count)
+Example: On average ek student kitni fees pay kar raha hai?
+SELECT AVG(amount_paid) FROM fees_payment;
+
+MAX() & MIN(): Highest aur Lowest values find karne ke liye.
+SELECT MAX(amount_paid), MIN(amount_paid) FROM fees_payment;
+
+GROUP BY CLAUSE (Data Segregation)
+
+Definition:
+Data ke alag-alag chhotte-chhotte dher (groups) banana aur har group
+par koi calculation (Aggregate function) chalana.
+
+Real-World ERP Use-Case:
+
+Accounts Module: Pure school ka total nikalne ke bajaye Class-wise
+ya Department-wise total fee collection nikaalna.
+
+SQL Query Example:
+SELECT class, SUM(amount_paid) AS total_collection
+FROM fees_payment
+GROUP BY class;
+
+CRITICAL INTERVIEW GOLDEN RULE:
+SELECT clause ke andar aap sirf wahi non-aggregated column likh
+sakte hain jo GROUP BY clause me pehle se maujood ho.
+SELECT student_id, class, SUM(amount_paid) ... GROUP BY class
+hamesha ERROR dega kyunki database student_id par confuse ho jayega.
+
+HAVING CLAUSE (Group Filtering)
+
+Definition:
+Bane hue Summary Groups ke upar filter lagane ke liye HAVING ka use
+hota hai.
+
+Why not WHERE clause? (CRITICAL INTERVIEW QUESTION)
+WHERE clause kabhi bhi aggregate functions (jaise SUM, COUNT) ke
+saath kaam nahi kar sakta kyunki WHERE groups banne se PEHLE ek-ek
+row ko filter karta hai. Groups banne ke BAAD filter karne ke liye
+sirf HAVING kaam aata hai.
+
+SQL Query Example (Show only classes with collection > 9000):
+SELECT class, SUM(amount_paid) AS total_collection
+FROM fees_payment
+GROUP BY class
+HAVING SUM(amount_paid) > 9000;
+
+DATABASE QUERY EXECUTION ORDER
+
+Jab ek badi query me WHERE, GROUP BY, aur HAVING sab ek saath hote hain,
+toh Database backend me is fixed sequence me run karta hai:
+
+FROM      -> Sabse pehle target table uthayi jaati hai.
+
+WHERE     -> Raw rows par filter lagta hai (Jo filter hui wahi aage jayengi).
+
+GROUP BY  -> Bacchi hui rows ke dher (groups) banaye jaate hain.
+
+HAVING    -> Bane hue groups par aggregation ke basis par filter lagta hai.
+
+SELECT    -> Final clean result screen par display hota hai.
+
+Master Query Example:
+SELECT class, SUM(amount_paid)
+FROM fees_payment
+WHERE class != '11th'
+GROUP BY class
+HAVING SUM(amount_paid) > 9000;
+========================================================================
