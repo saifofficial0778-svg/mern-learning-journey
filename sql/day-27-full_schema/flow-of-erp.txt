@@ -1,0 +1,192 @@
+-- ============================================================
+--  SCHOOL ERP SAAS — DATABASE SCHEMA
+--  Order matters: parent tables pehle, child tables baad mein
+-- ============================================================
+
+-- Step 1: Database banao
+CREATE DATABASE IF NOT EXISTS school_erp;
+USE school_erp;
+
+-- ============================================================
+-- TABLE 1: classes
+-- Sabse pehle kyunki students aur teachers isko reference karte hain
+-- ============================================================
+CREATE TABLE classes (
+    class_id    INT          AUTO_INCREMENT PRIMARY KEY,
+    class_name  VARCHAR(20)  NOT NULL,          -- e.g. "10", "9", "8"
+    section     VARCHAR(5)   NOT NULL,          -- e.g. "A", "B", "C"
+    created_at  TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
+
+    UNIQUE KEY uq_class_section (class_name, section)  -- same class+section dobara nahi
+);
+
+-- ============================================================
+-- TABLE 2: teachers
+-- classes ke baad kyunki class_id FK hai
+-- ============================================================
+CREATE TABLE teachers (
+    teacher_id  INT           AUTO_INCREMENT PRIMARY KEY,
+    class_id    INT           NOT NULL,
+    name        VARCHAR(100)  NOT NULL,
+    subject     VARCHAR(100)  NOT NULL,
+    email       VARCHAR(150)  UNIQUE NOT NULL,
+    phone       VARCHAR(15)   NOT NULL,
+    created_at  TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_teacher_class
+        FOREIGN KEY (class_id) REFERENCES classes(class_id)
+        ON DELETE RESTRICT      -- class delete nahi hogi jab tak teacher hai
+        ON UPDATE CASCADE       -- class_id change ho toh automatically update
+);
+
+-- ============================================================
+-- TABLE 3: students
+-- classes ke baad kyunki class_id FK hai
+-- ============================================================
+CREATE TABLE students (
+    student_id    INT           AUTO_INCREMENT PRIMARY KEY,
+    class_id      INT           NOT NULL,
+    name          VARCHAR(100)  NOT NULL,
+    roll_number   VARCHAR(20)   NOT NULL,
+    parent_name   VARCHAR(100)  NOT NULL,
+    phone         VARCHAR(15)   NOT NULL,
+    admission_date DATE         NOT NULL DEFAULT (CURRENT_DATE),
+    created_at    TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_student_class
+        FOREIGN KEY (class_id) REFERENCES classes(class_id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE,
+
+    UNIQUE KEY uq_roll_class (class_id, roll_number)  -- ek class mein roll no. unique
+);
+
+-- ============================================================
+-- TABLE 4: fees
+-- students ke baad kyunki student_id FK hai
+-- Yahan MySQL TRANSACTION use hogi (ACID compliance)
+-- ============================================================
+CREATE TABLE fees (
+    fee_id      INT           AUTO_INCREMENT PRIMARY KEY,
+    student_id  INT           NOT NULL,
+    amount      DECIMAL(10,2) NOT NULL,
+    month       VARCHAR(20)   NOT NULL,   -- e.g. "June-2025"
+    status      ENUM('paid', 'pending', 'partial') NOT NULL DEFAULT 'pending',
+    paid_on     DATE          NULL,       -- payment date (NULL if pending)
+    remarks     VARCHAR(255)  NULL,
+    created_at  TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_fees_student
+        FOREIGN KEY (student_id) REFERENCES students(student_id)
+        ON DELETE RESTRICT      -- student delete nahi hoga jab tak fees hain
+        ON UPDATE CASCADE,
+
+    UNIQUE KEY uq_fee_month (student_id, month),  -- ek student ki ek month mein ek hi entry
+
+    INDEX idx_student_id (student_id),   -- fast search ke liye (O log N)
+    INDEX idx_status     (status)        -- pending fees quickly filter karne ke liye
+);
+
+-- ============================================================
+-- TABLE 5: attendance
+-- students aur teachers dono ke baad
+-- ============================================================
+CREATE TABLE attendance (
+    att_id      INT     AUTO_INCREMENT PRIMARY KEY,
+    student_id  INT     NOT NULL,
+    teacher_id  INT     NOT NULL,
+    att_date    DATE    NOT NULL,
+    status      ENUM('present', 'absent', 'late') NOT NULL,
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_att_student
+        FOREIGN KEY (student_id) REFERENCES students(student_id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE,
+
+    CONSTRAINT fk_att_teacher
+        FOREIGN KEY (teacher_id) REFERENCES teachers(teacher_id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE,
+
+    UNIQUE KEY uq_att_per_day (student_id, att_date),  -- ek din mein ek hi entry per student
+
+    INDEX idx_att_student (student_id),   -- student ki attendance history fast nikalne ke liye
+    INDEX idx_att_date    (att_date)      -- date-wise filter ke liye
+);
+
+
+-- ============================================================
+--  SAMPLE DATA — Test karne ke liye
+-- ============================================================
+
+-- Classes
+INSERT INTO classes (class_name, section) VALUES
+('10', 'A'),
+('10', 'B'),
+('9',  'A');
+
+-- Teachers
+INSERT INTO teachers (class_id, name, subject, email, phone) VALUES
+(1, 'Ramesh Kumar',  'Mathematics', 'ramesh@school.com', '9876543210'),
+(2, 'Sunita Sharma', 'Science',     'sunita@school.com', '9876543211'),
+(3, 'Anil Verma',    'English',     'anil@school.com',   '9876543212');
+
+-- Students
+INSERT INTO students (class_id, name, roll_number, parent_name, phone, admission_date) VALUES
+(1, 'Rahul Sharma',  '01', 'Suresh Sharma',  '9000000001', '2024-04-01'),
+(1, 'Priya Verma',   '02', 'Mohan Verma',    '9000000002', '2024-04-01'),
+(2, 'Arjun Singh',   '01', 'Rajesh Singh',   '9000000003', '2024-04-01'),
+(3, 'Pooja Gupta',   '01', 'Dinesh Gupta',   '9000000004', '2024-04-01');
+
+-- Fees
+INSERT INTO fees (student_id, amount, month, status, paid_on) VALUES
+(1, 1200.00, 'June-2025',  'paid',    '2025-06-05'),
+(1, 1200.00, 'July-2025',  'pending',  NULL),
+(2, 1200.00, 'June-2025',  'paid',    '2025-06-07'),
+(3, 1200.00, 'June-2025',  'partial', '2025-06-10');
+
+-- Attendance
+INSERT INTO attendance (student_id, teacher_id, att_date, status) VALUES
+(1, 1, '2025-06-01', 'present'),
+(2, 1, '2025-06-01', 'absent'),
+(3, 2, '2025-06-01', 'present'),
+(1, 1, '2025-06-02', 'late');
+
+
+-- ============================================================
+--  USEFUL JOIN QUERIES — Seedha copy-paste karo Node.js mein
+-- ============================================================
+
+-- 1. Ek class ke saare students ki June fees status
+-- SELECT s.name, s.roll_number, f.month, f.amount, f.status
+-- FROM students s
+-- JOIN fees f ON s.student_id = f.student_id
+-- WHERE s.class_id = 1 AND f.month = 'June-2025'
+-- ORDER BY s.roll_number;
+
+-- 2. Saari pending fees (Admin dashboard ke liye)
+-- SELECT s.name, c.class_name, c.section, f.month, f.amount
+-- FROM fees f
+-- JOIN students s ON f.student_id = s.student_id
+-- JOIN classes c  ON s.class_id   = c.class_id
+-- WHERE f.status = 'pending'
+-- ORDER BY c.class_name, s.roll_number;
+
+-- 3. Ek student ki poori attendance + kisne mark ki
+-- SELECT a.att_date, a.status, t.name AS marked_by
+-- FROM attendance a
+-- JOIN teachers t ON a.teacher_id = t.teacher_id
+-- WHERE a.student_id = 1
+-- ORDER BY a.att_date DESC;
+
+-- 4. Class-wise attendance summary (ek din ki)
+-- SELECT c.class_name, c.section,
+--        COUNT(*) AS total,
+--        SUM(a.status = 'present') AS present_count,
+--        SUM(a.status = 'absent')  AS absent_count
+-- FROM attendance a
+-- JOIN students s ON a.student_id = s.student_id
+-- JOIN classes c  ON s.class_id   = c.class_id
+-- WHERE a.att_date = '2025-06-01'
+-- GROUP BY c.class_id;

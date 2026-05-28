@@ -1,0 +1,103 @@
+============================================================
+DATABASE DESIGN NOTES: MULTI-TENANT SCHOOL ERP
+Topic: Core Schema Design, SaaS Architecture, and Performance
+Milestone: Month 1 Complete
+============================================================
+
+1. THE CORE SAAS CONCEPT: MULTI-TENANCY
+--------------------------------------
+* What is it?: Real-world SaaS products (like Slack or Shopify) 
+  don't create separate databases for every new customer (school). 
+  They run all customers on a Single Codebase & Shared Database.
+  
+* The Secret Column (school_id): To separate School A's data 
+  from School B, we added a school_id column in every single table.
+  
+* Data Isolation: When querying, the backend will always append 
+  "WHERE school_id = X". This acts as a virtual wall between 
+  schools so data never leaks!
+
+
+2. DATABASE RELATIONSHIPS EXPLAINED
+-----------------------------------
+Humne database mein tables ke aapas ke rishte fix kiye hain:
+
+* One-to-One (1:1) Relationship:
+  Tables: users <-> students (and teachers)
+  Desi Logic: Ek insaan jo login karega (users), woh school mein 
+  ya toh ek akela student hoga ya ek akela teacher. Aisa nahi ho 
+  samta ki ek hi login ID se do alag student profiles judi hon.
+  Implementation: students table mein user_id ko UNIQUE rakha hai.
+
+* One-to-Many (1:Many) Relationship:
+  Tables: classes <-> student_class_mapping
+  Desi Logic: 'Class 10-A' school mein ek hi hogi, par us ek class 
+  ke andar 50 bacche baith sakte hain.
+  Implementation: Mapping table mein class_id foreign key banayi hai.
+
+* Many-to-Many (Many:Many) Relationship:
+  Tables: students <-> attendance (via dates)
+  Desi Logic: Ek student ki kai dino tak attendance lag sakti hai 
+  (Day 1, Day 2, Day 3). Aur ek hi din ko kai saare bacchon ki 
+  attendance lagti hai.
+  Implementation: attendance table beech mein bridge ka kaam karti hai.
+
+
+3. SYSTEM DESIGN & PERFORMANCE TUNING
+-------------------------------------
+* The Problem: Agar database mein 10 lakh rows hain aur hum bina 
+  indexing ke data search karenge, toh MySQL ko shuru se aakhiri 
+  tak saari rows check karni padengi. Isko Full Table Scan ya 
+  O(n) Complexity bolte hain. Yeh system ko dead slow kar deta hai.
+  
+* The Solution (Indexing): Humne important columns par B-Tree 
+  Composite Indexes lagaye hain (jaise idx_mapping_school_class_year).
+  
+* The Result: Indexing ki wajah se MySQL parde ke peeche ek balanced 
+  tree data structure bana lena hai. Ab search speed seedhe Logarithmic 
+  Time Complexity O(log n) par aa jaati hai. 10 lakh rows mein se bhi 
+  data milliseconds mein nikal aata hai!
+
+
+4. THE SESSION PROMOTION PROBLEM
+--------------------------------
+* The Big Mistake Developers Do: Naye saal mein student ki class 
+  badalne ke liye log direct students table mein class_id ko update 
+  kar dete hain.
+  
+* Why it Fails: Agar tumne direct class badal di, toh us bache ki 
+  purani class ki attendance aur fees ka saara data corrupt (galat) 
+  ho jayega!
+  
+* Our Pro SaaS Solution: Humne students table se class_id hata diya. 
+  Humne ek alag table banayi: student_class_mapping.
+  
+* How it Works: Jab naya session (2026-2027) aayega, hum purani row 
+  ka status 'promoted' kar denge aur bina purana data chhede, naye saal 
+  ke liye ek naye class_id ke sath nayi row insert kar denge. Isko 
+  Data Immutability bolte hain.
+
+
+5. DATA INTEGRITY & CONSTRAINTS
+-------------------------------
+* Duplicate Roll Number Block: Humne database par rule lagaya hai: 
+  UNIQUE KEY (school_id, class_id, roll_number). Iska matlab, Class 
+  10-A mein do bacchon ka same roll number galti se bhi insert nahi 
+  ho payega.
+  
+* ON DELETE CASCADE: Agar koi school platform chhodta hai (schools 
+  table se delete hota hai), toh uska saara data (users, students, 
+  attendance, fees) automatic saaf ho jayega, jisse junk data nahi bachega.
+  
+* ON DELETE RESTRICT: Agar koi galti se aisi class delete karne ki 
+  koshish karega jisme bache pehle se mapped hain, toh database us 
+  query ka haath pakad lega aur error maar dega.
+
+
+6. OUTPUT VERIFICATION SUCCESS
+------------------------------
+* What we tested: Humne SQL query mein JOIN lagakar test kiya.
+* Result: Hamara naya modular architecture ekdum perfect kaam kar raha 
+  hai! 5 students ka data safely naye mapping system (academic_year = '2026-2027') 
+  mein fetch ho raha hai without any breakdown.
+============================================================
