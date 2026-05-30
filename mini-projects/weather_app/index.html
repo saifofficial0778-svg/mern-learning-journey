@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>weather.app</title>
+</head>
+
+<body>
+
+    <div class="weather-card">
+        <input type="text" id="cityInput" placeholder="Enter city name">
+        <button onclick="getWeather()">Check Weather</button>
+
+        <div id="weatherInfo">
+            <h2 id="cityName">City Name</h2>
+            <p id="temp">Temperature -- °C</p>
+            <p id="desc">Condition --</p>
+        </div>
+    </div>
+
+    <script>
+        async function getWeather() {
+
+            const city = document.getElementById('cityInput').value;
+            const infoDiv = document.getElementById('weatherInfo');
+
+            if (city === "") {
+                alert("Bhai, city name toh likho!");
+                return;
+            }
+
+            try {
+
+                const response = await fetch(
+                    `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=9c3c94ce9807adf452199057e9f3a340&units=metric`
+                );
+
+                const data = await response.json();
+
+                if (data.cod == "404") {
+
+                    infoDiv.innerHTML = "<p>City nhi mila bhai!</p>";
+
+                } else {
+
+                    document.getElementById('cityName').innerText = data.name;
+
+                    document.getElementById('temp').innerText =
+                        `Temperature: ${data.main.temp}°C`;
+
+                    document.getElementById('desc').innerText =
+                        `Condition: ${data.weather[0].description}`;
+
+                        document.getElementById('cityInput').value = "";
+                    if (data.weather[0].main === "Rain") {
+
+                        document.body.style.backgroundColor = "green";
+
+                    }
+                    else if (data.main.temp > 30) {
+
+                        document.body.style.backgroundColor = "orange";
+
+                    }
+                    else {
+
+                        document.body.style.backgroundColor = "lightblue";
+
+                    }
+
+
+                }
+
+            } catch (error) {
+
+                console.log("Error aa gya:", error);
+
+            }
+        }
+    </script>
+
+</body>
+
+</html>
