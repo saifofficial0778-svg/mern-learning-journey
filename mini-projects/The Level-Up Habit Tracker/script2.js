@@ -4,7 +4,7 @@ const habitList = document.getElementById('habit-list');
 const progressBarFill = document.getElementById('progress-bar-fill');
 const progressText = document.getElementById('progress-text');
 
-let habits = [];
+let habits = JSON.parse(localStorage.getItem('myHabits')) || [];
 
 addHabitBtn.addEventListener('click', () => {
     const text = habitInput.value;
@@ -37,6 +37,7 @@ function renderHabits() {
         habitList.appendChild(li)
     })
     updateprogressbar();
+    saveLocalStorage();
 }
 function deleteHabit(index){
     habits.splice(index,1);
@@ -58,3 +59,8 @@ function updateprogressbar(){
     progressBarFill.style.width=`${percentage}%`;
     progressText.innerText=`${percentage}%`
 }
+function saveLocalStorage(){
+    localStorage.setItem('myHabits',JSON.stringify(habits));
+};
+// Jab page load ho, toh save hua data screen par dikhao
+renderHabits();
