@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Level-Up Habit Tracker</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="tracker-container">
+        <h1>Level-Up Habit Tracker 🚀</h1>
+        
+        <!-- Progress Bar Section -->
+        <div class="progress-container">
+            <p>Today's Progress: <span id="progress-text">0%</span></p>
+            <div class="progress-bar-bg">
+                <div id="progress-bar-fill"></div>
+            </div>
+        </div>
+
+        <!-- Input Form Section -->
+        <div class="habit-form">
+            <input type="text" id="habit-input" placeholder="Enter a new habit (e.g., Code 1 hour)...">
+            <button id="add-habit-btn">Add Habit</button>
+        </div>
+
+        <!-- Habits List Section -->
+        <ul id="habit-list">
+            <!-- JavaScript will inject habits here dynamically -->
+        </ul>
+    </div>
+
+    <script src="script2.js"></script>
+</body>
+</html>
