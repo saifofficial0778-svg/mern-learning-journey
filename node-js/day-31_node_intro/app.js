@@ -23,3 +23,10 @@ function checkEnvironment() {
 }
 
 checkEnvironment();
+
+// Final Code jo Interviewer ko dikhana hai:
+const num1 = Number(process.argv[2]); // "10" ban gaya 10
+const num2 = Number(process.argv[3]); // "20" ban gaya 20
+
+const sum = num1 + num2;
+console.log("Dono ka total sum hai:", sum); // Output: 30
