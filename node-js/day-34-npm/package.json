@@ -1,0 +1,17 @@
+{
+  "name": "school_erp",
+  "version": "1.0.0",
+  "description": "School ERP system for managing students data",
+  "keywords": "[]",
+  "license": "ISC",
+  "author": "saif",
+  "type": "commonjs",
+  "main": "index.js",
+"scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
