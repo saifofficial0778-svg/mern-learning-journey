@@ -1,0 +1,44 @@
+[
+  {
+    "time": "6/6/2026, 11:40:31 PM",
+    "type": "DEPOSITE",
+    "amount": 5000,
+    "currentBalance": 15000
+  },
+  {
+    "time": "6/6/2026, 11:40:31 PM",
+    "type": "WITHDRAW",
+    "amount": 2000,
+    "currentBalance": 13000
+  },
+  {
+    "time": "6/6/2026, 11:49:41 PM",
+    "type": "DEPOSITE",
+    "amount": 500,
+    "currentBalance": 10500
+  },
+  {
+    "time": "6/6/2026, 11:50:10 PM",
+    "type": "DEPOSITE",
+    "amount": 500,
+    "currentBalance": 10500
+  },
+  {
+    "time": "6/6/2026, 11:50:10 PM",
+    "type": "DEPOSITE",
+    "amount": 500,
+    "currentBalance": 11000
+  },
+  {
+    "time": "6/6/2026, 11:50:32 PM",
+    "type": "DEPOSITE",
+    "amount": 500,
+    "currentBalance": 10500
+  },
+  {
+    "time": "6/6/2026, 11:50:32 PM",
+    "type": "DEPOSITE",
+    "amount": 500,
+    "currentBalance": 11000
+  }
+]
