@@ -7,7 +7,7 @@ app.use(express.json()); // JSON data ke liye
 app.use(express.urlencoded({ extended: true })); // 🔥 HTML Form se aane wale data ko padhne ke liye!
 
 // Ek temporary array bana lete hain register ki tarah data store karne ke liye
-let feeRegister = [];
+let feeRegister = [] ;
 
 // 1. Home page par HTML file dikhane ke liye
 app.get('/', (req, res) => {
