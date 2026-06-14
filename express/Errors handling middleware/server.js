@@ -8,5 +8,5 @@ process.env.NODE_ENV = 'development';
 const PORT = 3000;
 app.listen(PORT, () => {
     console.log(`🚀 ERP Server ekdum mast chal raha hai on port ${PORT}...`);
-    // console.log(`Environment: ${process.env.NODE_ENV}`);
+    console.log(`Environment: ${process.env.NODE_ENV}`);
 });

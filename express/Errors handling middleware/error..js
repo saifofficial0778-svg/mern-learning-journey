@@ -11,6 +11,7 @@ app.get('/student/:id',(req,res,next)=>{
             error.statusCode=404;
             return next(error);
         }
+    
         res.json({success:true,message: "Student mil gaya!"})
     }catch(err){
         next(err)
