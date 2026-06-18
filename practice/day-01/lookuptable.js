@@ -10,4 +10,4 @@ const groupedData=users.reduce((gullak,product)=>{
     
 },{})
 // console.log(JSON.stringify(groupedData,null,2))
-console.log(groupedData["u1"])
+console.log(groupedData)
