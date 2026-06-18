@@ -1,5 +1,5 @@
-CREATE DATABASE edusuite_db;
-use edusuite_db;
+CREATE DATABASE IF NOT EXISTS edusuite_db;
+USE edusuite_db;
 
 -- 1. SCHOOLS TABLE (SaaS ki jaan - Multi-tenancy ke liye)
 CREATE TABLE schools (
@@ -42,7 +42,8 @@ CREATE TABLE teachers (
     FOREIGN KEY (school_id) REFERENCES schools(id) ON DELETE CASCADE
 );
 
--- 5. STUDENTS TABLE (Linked with Users 1:1 and Classes)
+-- 5. STUDENTS TABLE (Linked with Users 1:1)
+-- Note: Isme se class_id column permanently hata diya hai kyunki mapping table handle karegi
 CREATE TABLE students (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT UNIQUE NOT NULL,
@@ -52,9 +53,8 @@ CREATE TABLE students (
     guardian_name VARCHAR(100),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (school_id) REFERENCES schools(id) ON DELETE CASCADE,
-    FOREIGN KEY (class_id) REFERENCES classes(id) ON DELETE RESTRICT,
-    -- Ek school ki ek class mein duplicate roll number nahi ho sakta!
-    UNIQUE KEY unique_school_class_roll (school_id, class_id, roll_number)
+    -- 🔥 BUG FIX: Ab ek school me ek roll number ek hi baar aa sakta hai, bina crash hue
+    UNIQUE KEY unique_school_roll (school_id, roll_number)
 );
 
 -- 6. ATTENDANCE TABLE (Daily tracking)
@@ -71,19 +71,25 @@ CREATE TABLE attendance (
     UNIQUE KEY unique_student_date (student_id, date)
 );
 
--- 7. FEES TABLE (Financial Ledger)
+-- 🔥 Performance Booster Index for Attendance Search
+CREATE INDEX idx_attendance_search ON attendance(school_id, date);
+
+-- 7. FEES TABLE (Financial Ledger - Upgraded!)
 CREATE TABLE fees (
     id INT AUTO_INCREMENT PRIMARY KEY,
     school_id INT NOT NULL,
     student_id INT NOT NULL,
+    total_bill_amount DECIMAL(10, 2) NOT NULL DEFAULT 0.00, -- 👈 New Column
     amount_paid DECIMAL(10, 2) NOT NULL,
     payment_date DATE NOT NULL,
     payment_mode ENUM('cash', 'online', 'cheque') NOT NULL,
+    status ENUM('paid', 'partially_paid', 'pending') NOT NULL DEFAULT 'pending', -- 👈 New Column
     transaction_id VARCHAR(100) UNIQUE NULL,
     FOREIGN KEY (school_id) REFERENCES schools(id) ON DELETE CASCADE,
     FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
 );
--- 8.Nayi Mapping Table Create Karo (student_class_mapping)
+
+-- 8. MAPPING TABLE (Student Class Mapping)
 CREATE TABLE student_class_mapping (
     id INT AUTO_INCREMENT PRIMARY KEY,
     school_id INT NOT NULL,
@@ -98,51 +104,5 @@ CREATE TABLE student_class_mapping (
     UNIQUE KEY unique_student_year (student_id, academic_year)
 );
 
-
--- Pehle ek School insert karte hain (e.g., "Gyan Bhandar Public School")
-INSERT INTO schools (school_name, address) 
-VALUES ('Gyan Bhandar Public School', '123, Desi Street, Delhi');
-
--- Maan lete hain is school ki ID = 1 mili. Now create a Class (Class 10-A)
-INSERT INTO classes (school_id, class_name, section) 
-VALUES (1, 'Class 10', 'A'); -- assume class ID = 1
-
--- Ab 5 Students ke liye pehle USERS table mein entries karni hongi (Auth ke liye)
-INSERT INTO users (school_id, email, password_hash, role) VALUES 
-(1, 'rahul@gyan.com', 'hashed_pwd_1', 'student'),
-(1, 'amit@gyan.com', 'hashed_pwd_2', 'student'),
-(1, 'priya@gyan.com', 'hashed_pwd_3', 'student'),
-(1, 'sneha@gyan.com', 'hashed_pwd_4', 'student'),
-(1, 'vikram@gyan.com', 'hashed_pwd_5', 'student');
-
--- Ab inhi 5 Users ko STUDENTS table se link karke real student profile banate hain
--- (Assuming user IDs are 1, 2, 3, 4, 5 and class_id = 1)
-INSERT INTO students (user_id, school_id, class_id, full_name, roll_number, guardian_name) VALUES 
-(1, 1, 1, 'Rahul Kumar', 101, 'Ramesh Kumar'),
-(2, 1, 1, 'Amit Sharma', 102, 'Suresh Sharma'),
-(3, 1, 1, 'Priya Patel', 103, 'Dinesh Patel'),
-(4, 1, 1, 'Sneha Singh', 104, 'Vijay Singh'),
-(5, 1, 1, 'Vikram Rathore', 105, 'Jaipal Rathore');
-
-
-select * from students
-where school_id=1 AND roll_number=101;
-
-INSERT INTO student_class_mapping (school_id, student_id, class_id, academic_year, status)
-SELECT school_id, id, class_id, '2026-2027', 'active' FROM students;
-
--- Pehle foreign key constraint ko drop karna padega (MySQL default naam handle karega)
--- Agar constraint name alag ho toh error aane par 'students_ibfk_3' check kar lena
-ALTER TABLE students DROP FOREIGN KEY students_ibfk_3;
-
--- Ab column ko permanently delete kar do
-ALTER TABLE students DROP COLUMN class_id;
-
--- Mapping table par fast search ke liye index
+-- Fast search ke liye mapping index
 CREATE INDEX idx_mapping_school_class_year ON student_class_mapping(school_id, class_id, academic_year);
-
--- Class 10-A (class_id = 1) ke saare bacchon ko nikalne ki query
-SELECT s.id, s.full_name, s.roll_number, m.academic_year 
-FROM students s
-JOIN student_class_mapping m ON s.id = m.student_id
-WHERE m.school_id = 1 AND m.class_id = 1 AND m.academic_year = '2026-2027';
