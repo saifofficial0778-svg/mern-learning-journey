@@ -70,5 +70,11 @@ app.post('/api/fee/submit', (req, res) => {
     const { studentName, amount } = req.body;
     res.status(201).json({ success: true, message: `Fee for ${studentName} recorded.` });
 });
+app.get('/api/fee',(req,res)=>{
+    res.status(200).json({
+        success:true,
+        data:{"Name":"Mohd Saif","Age":23}
+    })
+})
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT} :http://localhost:3000//api/fee/submit`));
+app.listen(PORT, () => console.log(`Server running on port ${PORT} :http:/localhost:3000//api/fee/submit`));
