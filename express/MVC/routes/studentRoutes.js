@@ -1,20 +1,20 @@
-// const express = require('express');
-// const router = express.Router();
+const express=require('express')
+const router=express.Router();
 
-// router.get('/all', (req, res) => {
-//     res.status(200).json({
-//         success: true,
-//         message: "Saare students ka data yahan milega."
-//     })
-// })
+router.get('/all',(req,res)=>{
+    res.status(200).json({
+        success:true,
+        message:"sare students ka data yaha milega"
+    })
+});
 
-// router.post('/add', (req, res) => {
-//      const {studentName,amount}=req.body;
-//      const newFee={studentName,amount};
-//     res.status(201).json({
-//         success: true,
-//         message: "Naya student ERP me add ho gaya!",
-//         data:newFee
-//             })
-// })
-// module.exports = router
+router.post('/add',(req,res)=>{
+    const newStudent=req.body
+    res.status(201).json({
+        success:true,
+        message:"student added successfully",
+        data:newStudent
+    })
+})
+
+module.exports=router;
