@@ -17,4 +17,6 @@ app.all(/.*/,(req,res,next)=>{
 })
 
 app.use(globalErrorHandler);
+
+app.listen(3000,()=>{console.log('server is runnung')})
 module.exports=app;
